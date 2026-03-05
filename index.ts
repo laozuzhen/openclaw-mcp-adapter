@@ -27,21 +27,25 @@ export default function (api: any) {
           for (const tool of tools) {
             const toolName = config.toolPrefix ? `${server.name}_${tool.name}` : tool.name;
 
-            api.registerTool({
-              name: toolName,
-              description: tool.description ?? `Tool from ${server.name}`,
-              parameters: tool.inputSchema ?? { type: "object", properties: {} },
-              async execute(_id: string, params: unknown) {
-                const result = await pool.callTool(server.name, tool.name, params);
-                const text = result.content
-                  ?.map((c: any) => c.text ?? c.data ?? "")
-                  .join("\n") ?? "";
-                return {
-                  content: [{ type: "text", text }],
-                  isError: result.isError,
-                };
-              },
-            });
+            // Use factory function to ensure tools are available to all agents
+            api.registerTool(
+              (ctx: any) => ({
+                name: toolName,
+                description: tool.description ?? `Tool from ${server.name}`,
+                parameters: tool.inputSchema ?? { type: "object", properties: {} },
+                async execute(_id: string, params: unknown) {
+                  const result = await pool.callTool(server.name, tool.name, params);
+                  const text = result.content
+                    ?.map((c: any) => c.text ?? c.data ?? "")
+                    .join("\n") ?? "";
+                  return {
+                    content: [{ type: "text", text }],
+                    isError: result.isError,
+                  };
+                },
+              }),
+              { name: toolName }
+            );
 
             console.log(`[mcp-adapter] Registered: ${toolName}`);
           }
