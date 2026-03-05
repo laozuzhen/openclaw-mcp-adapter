@@ -15,10 +15,16 @@
       "./index.ts"
     ]
   },
+  "bin": {
+    "mcp-adapter": "./cli.ts"
+  },
   "files": [
     "index.ts",
     "mcp-client.ts",
     "config.ts",
+    "cache.ts",
+    "discovery.ts",
+    "cli.ts",
     "openclaw.plugin.json",
     "README.md"
   ],
