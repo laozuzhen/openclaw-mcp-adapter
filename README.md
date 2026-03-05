@@ -1,8 +1,41 @@
 # MCP Adapter (OpenClaw Plugin)
 
+> **🔧 Fixed Fork**: This is a fixed version of [androidStern-personal/openclaw-mcp-adapter](https://github.com/androidStern-personal/openclaw-mcp-adapter) that resolves the multi-agent tool registration issue.
+
 Exposes MCP (Model Context Protocol) server tools as native OpenClaw agent tools.
 
 Instead of running MCP servers through a CLI skill, this plugin connects to your MCP servers at startup, discovers their tools, and registers each one as a first-class tool that agents can invoke directly.
+
+## 🆕 What's Fixed
+
+**Original Issue**: MCP tools were only available to the `main` agent, not to other agents.
+
+**Root Cause**: The plugin registered tools as static objects instead of factory functions, preventing proper per-agent tool instantiation.
+
+**Fix**: Changed tool registration to use factory functions that are called for each agent:
+
+```typescript
+// ❌ Before: Static object (only works for main agent)
+api.registerTool({
+  name: toolName,
+  description: "...",
+  parameters: {...},
+  async execute(id, params) {...}
+})
+
+// ✅ After: Factory function (works for all agents)
+api.registerTool(
+  (ctx) => ({
+    name: toolName,
+    description: "...",
+    parameters: {...},
+    async execute(id, params) {...}
+  }),
+  { name: toolName }
+)
+```
+
+Now MCP tools are properly available to all agents in your OpenClaw setup.
 
 ## Requirements
 
@@ -13,13 +46,14 @@ Instead of running MCP servers through a CLI skill, this plugin connects to your
 ## Installation
 
 ```bash
-openclaw plugins install mcp-adapter
+# Install from this fixed fork
+openclaw plugins install https://github.com/laozuzhen/openclaw-mcp-adapter.git
 ```
 
 **Alternative: install from source**
 
 ```bash
-git clone https://github.com/androidStern/openclaw-mcp-adapter.git
+git clone https://github.com/laozuzhen/openclaw-mcp-adapter.git
 openclaw plugins install ./openclaw-mcp-adapter
 ```
 
